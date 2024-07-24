@@ -103,25 +103,28 @@ def ocr_image(image_path):
     text = pytesseract.image_to_string(image)
     return text
 
-def take_CID_from_image(image_path):
+def get_proper_info(image_path):
     text = ocr_image(image_path)
     print("Extracted text from image:")
     print(text)  # Debugging output
-    
-    # Improved regex to capture IUPAC names, CIDs, and types, including variations
-    iupac_names = re.findall(r'IUPAC name:\s*([^\n\r]+)', text)
+
+    # Regex to capture CIDs, IUPAC names, and types
     cids = re.findall(r'CID:\s*(\d+)', text)
+    iupac_names = re.findall(r'IUPAC name:\s*([^\n\r]+)', text)
     types = re.findall(r'Type:\s*([^\n\r]+)', text)
-    
+
     # Debugging output
     print(f"Extracted CIDs: {cids}")
     print(f"Extracted IUPAC Names: {iupac_names}")
     print(f"Extracted Types: {types}")
-    
+
     # Clean up the data
-    iupac_names = [name.strip().replace("MID", "").replace("Type", "").strip() for name in iupac_names]
-    types = [type_.strip().replace("MID", "").replace("Type", "").strip() for type_ in types]
-    
+    iupac_names = [name.strip() for name in iupac_names]
+    types = [type_.strip() for type_ in types]
+
+    print(f"Cleaned IUPAC Names: {iupac_names}")
+    print(f"Cleaned Types: {types}")
+
     return cids, iupac_names, types
 
 def update_sheet(row_index, cids, iupac_names, types):
@@ -129,36 +132,30 @@ def update_sheet(row_index, cids, iupac_names, types):
 
     num_cids = len(cids)
     num_iupac_names = len(iupac_names)
+    num_types = len(types)
 
-    # Update the original row with the first CID
+    # Update the original row with the first CID and associated data
     if num_cids > 0:
         sheet.update_cell(row_index, 5, cids[0])
         if num_iupac_names > 0:
             sheet.update_cell(row_index, 7, iupac_names[0])
-        if len(types) > 0:
+        if num_types > 0:
             sheet.update_cell(row_index, 4, types[0])
 
     # Initialize the starting index for new rows
     new_row_index = row_index
 
     # Process remaining info in pairs
-    for i in range(1, num_cids, 2):
+    for i in range(1, num_cids):
         new_row_index += 1
         sheet.insert_row([''] * sheet.col_count, new_row_index)
         
         # Update current row with the current CID and IUPAC
-        if i < num_cids:
-            sheet.update_cell(new_row_index, 5, cids[i])
-            if i < num_iupac_names:
-                sheet.update_cell(new_row_index, 7, iupac_names[i])
-            if len(types) > 0:
-                sheet.update_cell(new_row_index, 4, types[0])
-
-        # If there's a next CID and IUPAC, update the same row
-        if i + 1 < num_cids:
-            sheet.update_cell(new_row_index, 6, cids[i + 1])
-            if i + 1 < num_iupac_names:
-                sheet.update_cell(new_row_index, 8, iupac_names[i + 1])
+        sheet.update_cell(new_row_index, 5, cids[i])
+        if i < num_iupac_names:
+            sheet.update_cell(new_row_index, 7, iupac_names[i])
+        if i < num_types:
+            sheet.update_cell(new_row_index, 4, types[i])
 
     print(f"Update complete for row {new_row_index}")
 
@@ -168,7 +165,7 @@ def process(driver, row_index, pid):
     scroll_and_screenshot(driver, screenshot_path)
     
     # Extract CIDs, IUPAC names, and types from the image
-    cids, iupac_names, types = take_CID_from_image(screenshot_path)
+    cids, iupac_names, types = get_proper_info(screenshot_path)
     
     # Update the sheet with the extracted data
     update_sheet(row_index, cids, iupac_names, types)
