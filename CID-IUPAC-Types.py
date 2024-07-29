@@ -18,7 +18,7 @@ creds_path = r'C:\Users\nsluser\Desktop\code\polyinfo-automation-for-sjee-ba2633
 creds = ServiceAccountCredentials.from_json_keyfile_name(creds_path, scope)
 client = gspread.authorize(creds)
 # Access the Google Sheet
-sheet_url = "https://docs.google.com/spreadsheets/d/1kks1yINXgIFCeWjvseYFBNAIEq6cRoiCWWV2UYy6V28/edit?gid=2006529038#gid=2006529038"
+sheet_url = "https://docs.google.com/spreadsheets/d/1c75WRiYRwgtIH34SJrRfr4YrzMWk8P9MvtZDF7hpeD0/edit?gid=2006529038#gid=2006529038"
 sheet = client.open_by_url(sheet_url).sheet1
 # The PolyInfo URL
 polyinfo_url = "https://polymer.nims.go.jp/PoLyInfo/search"
@@ -164,18 +164,20 @@ def process(driver, row_index, pid):
 # Main Function
 def main():
     driver = login()
-    print("Starting the process for the first row")
+    print("Starting the process for each row")
     
-    # Hardcoded row index and PID
-    row_index = 1
-    pid = sheet.cell(row_index, 2).value
+    # Get all PIDs from the second column
+    pids = sheet.col_values(2)
     
-    if pid:
-        process(driver, row_index, pid)
-    #except:
-        # CAPTCHA SOLVER
-            
+    for row_index, pid in enumerate(pids, start=1):
+        if pid:
+            print(f"Processing row {row_index} with PID {pid}")
+            process(driver, row_index, pid)
+        else:
+            print(f"No PID found in row {row_index}")
+    
     driver.quit()
     print("Driver quit")
+
 # Run the script
 main()
