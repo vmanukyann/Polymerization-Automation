@@ -164,20 +164,18 @@ def process(driver, row_index, pid):
 # Main Function
 def main():
     driver = login()
-    print("Starting the process for each row")
+    print("Starting the process for the first row")
     
-    # Get all PIDs from the second column
-    pids = sheet.col_values(2)
+    # Hardcoded row index and PID
+    row_index = 1
+    pid = sheet.cell(row_index, 2).value
     
-    for row_index, pid in enumerate(pids, start=1):
-        if pid:
-            print(f"Processing row {row_index} with PID {pid}")
-            process(driver, row_index, pid)
-        else:
-            print(f"No PID found in row {row_index}")
-    
+    if pid:
+        process(driver, row_index, pid)
+    #except:
+        # CAPTCHA SOLVER
+            
     driver.quit()
     print("Driver quit")
-
 # Run the script
 main()
