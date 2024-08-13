@@ -30,7 +30,6 @@ def login():
     print("Opened PolyInfo URL")
 
     # Wait for the user to manually complete the login
-    print("Please complete the login manually. Waiting for 30 seconds...")
     time.sleep(30)  # Adjust sleep time as necessary
     print("Login wait period over")
 
@@ -44,7 +43,6 @@ def get_to_info(driver, pid):
     )
     search_box = search_boxes[0]
 
-    # Entering PID in field
     driver.execute_script("arguments[0].value = arguments[1];", search_box, pid)
     polymer_search_button = WebDriverWait(driver, 10).until(
         EC.element_to_be_clickable((By.LINK_TEXT, "POLYMER SEARCH"))
@@ -59,7 +57,6 @@ def get_to_info(driver, pid):
     first_link.click()
     time.sleep(5)
 
-    # Clicking on Polymerization paths & Candidate monomers link
     polymerization_link = WebDriverWait(driver, 10).until(
         EC.presence_of_element_located((By.ID, "polymerization_paths"))
     )
@@ -166,7 +163,7 @@ def main():
     driver = login()
     print("Starting the process for the first row")
     
-    # Hardcoded row index and PID
+    # row index and PID
     row_index = 1
     pid = sheet.cell(row_index, 2).value
     
